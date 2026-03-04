@@ -43,7 +43,7 @@ curl -s "http://127.0.0.1:3721/v1/status?sessionId=<from step 1>"
 
 ## Providers
 
-- `heygen` (default): contains integration placeholders for real API wiring.
+- `heygen` (default): real REST integration for `streaming.new/start/task/stop`.
 - `mock`: fully local response simulation for development.
 
 Set provider:
@@ -51,6 +51,20 @@ Set provider:
 ```bash
 AVATAR_PROVIDER=mock npm run start
 ```
+
+## HeyGen Setup
+
+1. Set `AVATAR_PROVIDER=heygen`
+2. Set `HEYGEN_API_KEY=<your key>`
+3. (Optional) set `HEYGEN_AVATAR_ID`, `HEYGEN_QUALITY`, `HEYGEN_TASK_TYPE`
+
+Notes:
+
+- Auth header uses `x-api-key`.
+- `sendAudio` currently returns `unsupported` in REST mode because v1 task endpoint is text-based.
+- If `HEYGEN_API_KEY` is missing:
+  - `HEYGEN_STRICT=false` -> runtime falls back to mock provider behavior
+  - `HEYGEN_STRICT=true` -> requests fail with explicit configuration error
 
 ## Skill Entry (for external distribution)
 

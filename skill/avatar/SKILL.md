@@ -20,6 +20,10 @@ Override with env var:
 
 `AVATAR_RUNTIME_URL`
 
+If unset, default to:
+
+`http://127.0.0.1:3721`
+
 ## Core Actions
 
 1. Start session
@@ -31,6 +35,9 @@ Override with env var:
 ## Example Calls
 
 ```bash
+# Optional default
+export AVATAR_RUNTIME_URL="${AVATAR_RUNTIME_URL:-http://127.0.0.1:3721}"
+
 # start
 curl -s -X POST "$AVATAR_RUNTIME_URL/v1/session/start" \
   -H "content-type: application/json" \
@@ -44,6 +51,16 @@ curl -s -X POST "$AVATAR_RUNTIME_URL/v1/input/text" \
 # status
 curl -s "$AVATAR_RUNTIME_URL/v1/status?sessionId=<session>"
 ```
+
+## Provider Notes (HeyGen)
+
+- Requires `HEYGEN_API_KEY` on runtime side.
+- Uses HeyGen REST endpoints:
+  - `POST /v1/streaming.new`
+  - `POST /v1/streaming.start`
+  - `POST /v1/streaming.task`
+  - `POST /v1/streaming.stop`
+- `sendAudio` via REST is limited; prefer transcript -> `sendText`, or use realtime endpoint flow.
 
 ## Fallback Policy
 
