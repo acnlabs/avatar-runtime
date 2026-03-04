@@ -1,0 +1,17 @@
+{
+  "name": "@acnlabs/avatar-runtime",
+  "version": "0.1.0",
+  "description": "Provider-agnostic avatar runtime for OpenPersona (MVP)",
+  "main": "src/runtime.js",
+  "bin": {
+    "avatar-runtime": "bin/avatar-runtime.js"
+  },
+  "scripts": {
+    "start": "node bin/avatar-runtime.js",
+    "dev": "AVATAR_PROVIDER=mock node bin/avatar-runtime.js --port 3721"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
