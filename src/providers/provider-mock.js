@@ -49,6 +49,22 @@ class MockProvider {
         voice: true,
         hearing: true,
         worldSense: false
+      },
+      providerCapabilities: {
+        faceRig: true,
+        lipSync: false,
+        gaze: true,
+        blink: true,
+        bodyMotion: false,
+        streaming: false
+      },
+      degrade: null,
+      visualManifest: {
+        version: '0.1'
+      },
+      media: {
+        avatarImage: null,
+        avatarVideo: null
       }
     };
   }

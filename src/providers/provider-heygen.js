@@ -1,4 +1,5 @@
 const { MockProvider } = require('./provider-mock');
+const { spawnSync } = require('node:child_process');
 
 class HeygenProvider {
   constructor(opts = {}) {
@@ -22,10 +23,11 @@ class HeygenProvider {
   }
 
   async request(path, payload) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), this.timeoutMs);
     const url = `${this.normalizeBaseUrl()}${path}`;
     try {
+      // Primary path: native fetch
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.timeoutMs);
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -48,6 +50,7 @@ class HeygenProvider {
         err.details = parsed;
         throw err;
       }
+      clearTimeout(timer);
       return parsed;
     } catch (err) {
       if (err.name === 'AbortError') {
@@ -55,9 +58,51 @@ class HeygenProvider {
         timeoutErr.statusCode = 504;
         throw timeoutErr;
       }
-      throw err;
-    } finally {
-      clearTimeout(timer);
+      // Fallback path: curl (more resilient in constrained Node TLS environments)
+      const curl = spawnSync(
+        'curl',
+        [
+          '-sS',
+          '--max-time',
+          String(Math.ceil(this.timeoutMs / 1000)),
+          '-w',
+          '\n%{http_code}',
+          '-X',
+          'POST',
+          url,
+          '-H',
+          'content-type: application/json',
+          '-H',
+          `x-api-key: ${this.apiKey}`,
+          '-d',
+          JSON.stringify(payload || {})
+        ],
+        { encoding: 'utf8' }
+      );
+      if (curl.error) {
+        throw err;
+      }
+      const text = (curl.stdout || '').trim();
+      const lines = text.split('\n');
+      const statusRaw = lines[lines.length - 1];
+      const bodyRaw = lines.slice(0, -1).join('\n');
+      const status = Number(statusRaw);
+      let parsed;
+      try {
+        parsed = bodyRaw ? JSON.parse(bodyRaw) : {};
+      } catch {
+        parsed = { raw: bodyRaw };
+      }
+      if (!Number.isFinite(status)) {
+        throw err;
+      }
+      if (status < 200 || status >= 300) {
+        const e = new Error(`HeyGen API ${status} on ${path}`);
+        e.statusCode = 502;
+        e.details = parsed;
+        throw e;
+      }
+      return parsed;
     }
   }
 
@@ -193,12 +238,27 @@ class HeygenProvider {
         hearing: hasRealProvider,
         worldSense: false
       },
+      providerCapabilities: {
+        faceRig: true,
+        lipSync: true,
+        gaze: false,
+        blink: false,
+        bodyMotion: true,
+        streaming: true
+      },
       degrade: hasRealProvider
         ? null
         : {
             to: 'text_only',
             reason: 'HEYGEN_API_KEY missing; running in mock compatibility mode.'
           },
+      visualManifest: {
+        version: '0.1'
+      },
+      media: {
+        avatarImage: null,
+        avatarVideo: null
+      },
       providerSessionId: session ? this.pickSessionId(session) : null
     };
   }

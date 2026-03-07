@@ -2,16 +2,53 @@
   "name": "@acnlabs/avatar-runtime",
   "version": "0.1.0",
   "description": "Provider-agnostic avatar runtime for OpenPersona (MVP)",
+  "author": "acnlabs",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/acnlabs/avatar-runtime.git"
+  },
+  "keywords": [
+    "avatar",
+    "live2d",
+    "virtual-avatar",
+    "face-control",
+    "openpersona",
+    "agent",
+    "persona"
+  ],
   "main": "src/runtime.js",
+  "exports": {
+    ".": "./src/runtime.js",
+    "./web": "./web/index.js",
+    "./widget": "./web/avatar-widget.js"
+  },
   "bin": {
     "avatar-runtime": "bin/avatar-runtime.js"
   },
   "scripts": {
     "start": "node bin/avatar-runtime.js",
-    "dev": "AVATAR_PROVIDER=mock node bin/avatar-runtime.js --port 3721"
+    "dev": "AVATAR_PROVIDER=mock node bin/avatar-runtime.js --port 3721",
+    "mock:live2d-bridge": "node bridges/live2d-bridge-mock.js",
+    "dev:live2d-cubism-bridge": "node bridges/live2d-cubism-web-bridge.js",
+    "accept:live2d": "bash dev-scripts/accept-live2d.sh"
   },
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "files": [
+    "bin/",
+    "src/",
+    "web/",
+    "skill/",
+    "scripts/",
+    "docs/",
+    "assets/live2d/licenses/",
+    "assets/live2d/slot/default.model.json",
+    "assets/live2d/slot/default.model3.json",
+    "assets/live2d/slot/expressions/",
+    "assets/live2d/slot/motions/",
+    "assets/live2d/slot/textures/",
+    "README.md"
+  ]
 }

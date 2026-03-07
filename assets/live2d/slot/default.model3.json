@@ -1,0 +1,12 @@
+{
+  "Version": 3,
+  "Meta": {
+    "Note": "Template placeholder. Replace with a real Live2D model package before production."
+  },
+  "FileReferences": {
+    "Moc": "default.moc3",
+    "Textures": [],
+    "Motions": {},
+    "Expressions": []
+  }
+}

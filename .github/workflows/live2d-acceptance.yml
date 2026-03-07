@@ -1,0 +1,35 @@
+name: Live2D Acceptance
+
+on:
+  pull_request:
+    branches: ['**']
+  push:
+    branches: ['**']
+  workflow_dispatch:
+
+jobs:
+  live2d-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Run Live2D acceptance
+        run: npm run accept:live2d
+
+      - name: Upload acceptance reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live2d-acceptance-reports
+          path: reports/live2d-acceptance/
+          if-no-files-found: warn

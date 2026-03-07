@@ -1,0 +1,40 @@
+LIVE2D ASSET LICENSE NOTICE
+===========================
+
+The "chitose" model files in this directory (chitose.model.json, moc/chitose.moc,
+moc/chitose.2048/texture_00.png, mtn/*.mtn, exp/*.exp.json, chitose.physics.json,
+chitose.pose.json) are Live2D sample assets provided by Live2D Inc.
+
+These files are subject to the Live2D Free Material License Agreement:
+  https://www.live2d.com/en/terms/live2d-free-material-license-agreement/
+
+USE RESTRICTIONS:
+- Non-commercial evaluation and demo use only.
+- Commercial use requires a separate commercial license from Live2D Inc.
+- Redistribution of these files as part of a commercial product is NOT permitted
+  without explicit written permission from Live2D Inc.
+
+REQUIRED ACTION BEFORE PRODUCTION:
+Replace all chitose.* files and the default.model3.json placeholder with a
+model that carries appropriate commercial redistribution and online service rights.
+Document the replacement model's license in ATTRIBUTION.md.
+
+---
+
+All other files in this directory (README.md, LICENSE.txt, ATTRIBUTION.md,
+ATTRIBUTION.template.md, LICENSE.template.txt, default.model3.json) are part of
+the OpenPersona framework and are licensed under the MIT License:
+
+  Copyright (c) 2024 acnlabs
+
+  Permission is hereby granted, free of charge, to any person obtaining a copy
+  of this software and associated documentation files (the "Software"), to deal
+  in the Software without restriction, including without limitation the rights
+  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+  copies of the Software, and to permit persons to whom the Software is
+  furnished to do so, subject to the following conditions:
+
+  The above copyright notice and this permission notice shall be included in all
+  copies or substantial portions of the Software.
+
+  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.

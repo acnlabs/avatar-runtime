@@ -1,6 +1,13 @@
 node_modules/
+reports/
 .env
 dist/
 coverage/
 *.log
 .DS_Store
+
+# Live2D model assets — downloaded or user-provided, not source
+# Placeholder files (default.model.json / default.model3.json) are tracked via explicit git add
+assets/live2d/slot/chitose/
+assets/live2d/slot/*/
+assets/live2d/licenses/ATTRIBUTION.sample.md
