@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Avatar Runtime — Control Demo</title>
@@ -41,7 +41,7 @@ input[type=range]{width:100%;accent-color:#6c63ff}
 </head>
 <body>
 <h1>Avatar Runtime · Control Demo</h1>
-<p class="sub">@acnlabs/avatar-runtime &nbsp;·&nbsp; control namespace v0.2 &nbsp;·&nbsp; 多渲染器</p>
+<p class="sub">@acnlabs/avatar-runtime &nbsp;·&nbsp; control namespace v0.2 &nbsp;·&nbsp; multi-renderer</p>
 
 <div class="grid">
 
@@ -59,10 +59,10 @@ input[type=range]{width:100%;accent-color:#6c63ff}
     <div class="area" id="vrmArea">
       <div class="ph" id="vrmPh">
         <div class="phi" id="vrmIcon">⏳</div>
-        <p id="vrmMsg">正在加载 Three.js…</p>
+        <p id="vrmMsg">Loading Three.js…</p>
         <label class="vrm-drop" id="vrmDrop" style="display:none">
           <input type="file" accept=".vrm" style="display:none" id="vrmFile">
-          拖放 .vrm 文件 或 点击选择
+          Drag and drop .vrm file or click to select
         </label>
       </div>
     </div>
@@ -80,18 +80,18 @@ input[type=range]{width:100%;accent-color:#6c63ff}
     </div>
     <div class="cf">
       <div class="st"><span>Runtime</span><span id="runtimeProv">—</span></div>
-      <div class="sr"><div class="dot off" id="connDot"></div><span id="connLabel">未连接 (3721)</span></div>
+      <div class="sr"><div class="dot off" id="connDot"></div><span id="connLabel">Not connected (3721)</span></div>
     </div>
   </div>
 </div>
 
 <!-- Face control -->
 <div class="ctrl">
-  <h2>control.avatar.face — 实时驱动所有渲染器</h2>
+  <h2>control.avatar.face — drives all renderers in real time</h2>
   <div class="sliders">
-    <div class="sg"><label>pose.yaw（左右）<span id="vYaw">0.00</span></label><input type="range" id="sYaw" min="0" max="100" value="50"></div>
-    <div class="sg"><label>pose.pitch（抬低）<span id="vPitch">0.00</span></label><input type="range" id="sPitch" min="0" max="100" value="50"></div>
-    <div class="sg"><label>pose.roll（侧倾）<span id="vRoll">0.00</span></label><input type="range" id="sRoll" min="0" max="100" value="50"></div>
+    <div class="sg"><label>pose.yaw (left/right)<span id="vYaw">0.00</span></label><input type="range" id="sYaw" min="0" max="100" value="50"></div>
+    <div class="sg"><label>pose.pitch (up/down)<span id="vPitch">0.00</span></label><input type="range" id="sPitch" min="0" max="100" value="50"></div>
+    <div class="sg"><label>pose.roll (side tilt)<span id="vRoll">0.00</span></label><input type="range" id="sRoll" min="0" max="100" value="50"></div>
     <div class="sg"><label>eyes.blinkL<span id="vBlinkL">1.00</span></label><input type="range" id="sBlinkL" min="0" max="100" value="100"></div>
     <div class="sg"><label>eyes.blinkR<span id="vBlinkR">1.00</span></label><input type="range" id="sBlinkR" min="0" max="100" value="100"></div>
     <div class="sg"><label>eyes.gazeX<span id="vGazeX">0.00</span></label><input type="range" id="sGazeX" min="0" max="100" value="50"></div>
@@ -103,10 +103,10 @@ input[type=range]{width:100%;accent-color:#6c63ff}
 
 <!-- Emotion control -->
 <div class="ctrl">
-  <h2>control.avatar.emotion — 语义情绪信号（VRM 表情驱动）</h2>
+  <h2>control.avatar.emotion — semantic emotion signal (VRM expression drive)</h2>
   <div class="sliders">
-    <div class="sg"><label>valence（正负）<span id="vValence">0.00</span></label><input type="range" id="sValence" min="0" max="100" value="50"></div>
-    <div class="sg"><label>arousal（激活度）<span id="vArousal">0.00</span></label><input type="range" id="sArousal" min="0" max="100" value="50"></div>
+    <div class="sg"><label>valence (positive/negative)<span id="vValence">0.00</span></label><input type="range" id="sValence" min="0" max="100" value="50"></div>
+    <div class="sg"><label>arousal (activation)<span id="vArousal">0.00</span></label><input type="range" id="sArousal" min="0" max="100" value="50"></div>
     <div class="sg"><label>intensity<span id="vEmotIntensity">0.50</span></label><input type="range" id="sEmotIntensity" min="0" max="100" value="50"></div>
   </div>
   <div class="presets" id="emotionLabels" style="margin-top:12px">
@@ -121,7 +121,7 @@ input[type=range]{width:100%;accent-color:#6c63ff}
 
 <!-- Body presets -->
 <div class="ctrl">
-  <h2>control.avatar.body — 姿态预设（VRM）</h2>
+  <h2>control.avatar.body — pose presets (VRM)</h2>
   <div class="presets" id="bodyPresets">
     <button class="preset-btn" data-preset="idle">idle</button>
     <button class="preset-btn" data-preset="wave">wave</button>
@@ -133,7 +133,7 @@ input[type=range]{width:100%;accent-color:#6c63ff}
 
 <!-- Scene control -->
 <div class="ctrl">
-  <h2>control.scene — 相机 &amp; 场景（VRM）</h2>
+  <h2>control.scene — camera &amp; scene (VRM)</h2>
   <div class="sliders">
     <div class="sg"><label>camera.fov<span id="vFov">30</span></label><input type="range" id="sFov" min="10" max="90" value="30"></div>
     <div class="sg"><label>camera.position.z<span id="vCamZ">1.80</span></label><input type="range" id="sCamZ" min="50" max="500" value="180"></div>
@@ -338,7 +338,7 @@ function mountVrm(modelUrl, name) {
   container.style.cssText = 'width:300px;height:300px;position:absolute;top:0;left:0';
   vrmArea.appendChild(container);
   vrmInst = vrmF.createInstance();
-  document.getElementById('vrmMsg').textContent = '⏳ 加载模型…';
+  document.getElementById('vrmMsg').textContent = '⏳ Loading model…';
   vrmInst.mount(container, {avatarModelVrmUrl: modelUrl, control: control})
     .then(function() {
       vrmPh.style.display = 'none';
@@ -349,33 +349,33 @@ function mountVrm(modelUrl, name) {
     .catch(function(e) {
       container.remove(); vrmInst = null;
       document.getElementById('vrmIcon').textContent = '⚠️';
-      document.getElementById('vrmMsg').textContent = '加载失败: ' + (e && e.message || e);
+      document.getElementById('vrmMsg').textContent = 'Load failed: ' + (e && e.message || e);
       document.getElementById('vrmDrop').style.display = 'block';
     });
 }
 
 if (vrmF) {
   var BRIDGE = 'http://127.0.0.1:3756';
-  document.getElementById('vrmMsg').textContent = '⏳ 检测本地 VRM bridge…';
+  document.getElementById('vrmMsg').textContent = '⏳ Detecting local VRM bridge…';
   fetch(BRIDGE + '/assets/vrm/slot/list')
     .then(function(r) { return r.json(); })
     .then(function(data) {
       var models = data.models || data.files || [];
-      if (!models.length) throw new Error('slot 中无模型');
+      if (!models.length) throw new Error('No model in slot');
       var m = models.find(function(x) { return x.name !== 'default.vrm'; }) || models[0];
       var url = BRIDGE + m.url;
-      document.getElementById('vrmMsg').textContent = '⏳ 加载 ' + m.name + '…';
+      document.getElementById('vrmMsg').textContent = '⏳ Loading ' + m.name + '…';
       mountVrm(url, m.name);
     })
     .catch(function() {
       document.getElementById('vrmIcon').textContent = '🧊';
-      document.getElementById('vrmMsg').textContent = 'Three.js ✓  拖放 .vrm 文件加载';
+      document.getElementById('vrmMsg').textContent = 'Three.js ✓ Drag and drop .vrm file to load';
       document.getElementById('vrmDrop').style.display = 'block';
       document.getElementById('cardVrm').classList.add('on');
     });
 } else {
   document.getElementById('vrmIcon').textContent = '⚠️';
-  document.getElementById('vrmMsg').textContent = 'vrm-renderer.js 未加载';
+  document.getElementById('vrmMsg').textContent = 'vrm-renderer.js not loaded';
 }
 
 // File drop / picker
@@ -398,14 +398,14 @@ dropEl.addEventListener('drop', function(e) {
 function poll() {
   fetch('http://127.0.0.1:3721/v1/status').then(function(r) { return r.json(); }).then(function(d) {
     document.getElementById('connDot').classList.remove('off');
-    document.getElementById('connLabel').textContent = '已连接 · ' + d.provider;
+    document.getElementById('connLabel').textContent = 'Connected · ' + d.provider;
     document.getElementById('runtimeProv').textContent = d.provider || '—';
     if (d.control) {
       document.getElementById('controlJson').textContent = JSON.stringify(d.control, null, 2);
     }
   }).catch(function() {
     document.getElementById('connDot').classList.add('off');
-    document.getElementById('connLabel').textContent = '未连接 (3721)';
+    document.getElementById('connLabel').textContent = 'Not connected (3721)';
   });
 }
 poll(); setInterval(poll, 2000);
