@@ -208,10 +208,101 @@ curl -s "$AVATAR_RUNTIME_URL/v1/status" | jq .control
 | Provider | Env vars | Notes |
 |----------|----------|-------|
 | `mock` | — | Development default, no key needed |
-| `heygen` | `HEYGEN_API_KEY` | Real streaming. `HEYGEN_STRICT=false` degrades to mock |
-| `live2d` | `LIVE2D_ENDPOINT` | Local bridge required. `LIVE2D_STRICT=false` degrades |
-| `vrm` | `VRM_BRIDGE_ENDPOINT` | Local 3D avatar. Free models from [VRoid Hub](https://hub.vroid.com). No API key. |
-| `kusapics` | `KUSAPICS_API_KEY`, `KUSAPICS_BASE_URL` | Anime-oriented |
+| `heygen` | `HEYGEN_API_KEY` | Real streaming avatar. `HEYGEN_STRICT=false` degrades to mock |
+| `live2d` | `LIVE2D_ENDPOINT` | Local Cubism bridge required. `LIVE2D_STRICT=false` degrades |
+| `vrm` | `VRM_BRIDGE_ENDPOINT` | Local 3D avatar, client-side rendering. Free models from [VRoid Hub](https://hub.vroid.com). No API key. |
+| `kusapics` | `KUSAPICS_API_KEY`, `KUSAPICS_BASE_URL` | Anime-oriented image provider |
+
+## Provider capabilities
+
+| Provider | faceRig | lipSync | gaze | blink | bodyMotion | streaming | bodyRig | sceneControl |
+|----------|:-------:|:-------:|:----:|:-----:|:----------:|:---------:|:-------:|:------------:|
+| `mock`     | ✓ | — | ✓ | ✓ | — | — | — | — |
+| `heygen`   | ✓ | ✓ | — | — | ✓ | ✓ | — | — |
+| `live2d`   | ✓ | ✓ | ✓ | ✓ | — | — | — | — |
+| `vrm`      | ✓ | — | ✓ | ✓ | — | — | ✓ | ✓ |
+| `kusapics` | — | — | — | — | — | — | — | — |
+
+`bodyRig` and `sceneControl` are VRM-only features — use `/v1/control/avatar/set` with a `body` field and `/v1/control/scene/set` respectively.
+
+## Quick-start: VRM 3D avatar (no API key)
+
+```bash
+# Terminal A — Download sample VRM model + serve assets on :3756
+cd packages/avatar-runtime
+bash scripts/ensure-default-vrm-sample.sh   # one-time download (CC BY 4.0)
+npm run dev:vrm-bridge                       # keeps running
+
+# Terminal B — Start runtime pointing at the VRM bridge
+AVATAR_PROVIDER=vrm npx avatar-runtime
+```
+
+Test face + body control:
+
+```bash
+BASE=http://127.0.0.1:3721
+SESSION=$(curl -s -X POST "$BASE/v1/session/start" \
+  -H "content-type: application/json" \
+  -d '{"personaId":"demo","form":"image"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['sessionId'])")
+
+# Face expression
+curl -s -X POST "$BASE/v1/control/avatar/set" \
+  -H "content-type: application/json" \
+  -d '{"face":{"pose":{"yaw":0.2},"mouth":{"smile":0.7}},"emotion":{"label":"happy","valence":0.8}}'
+
+# Body pose (VRM only)
+curl -s -X POST "$BASE/v1/control/avatar/set" \
+  -H "content-type: application/json" \
+  -d '{"body":{"preset":"wave","skeleton":{"rightUpperArm":{"x":0,"y":0,"z":60}}}}'
+
+# Camera scene (VRM only)
+curl -s -X POST "$BASE/v1/control/scene/set" \
+  -H "content-type: application/json" \
+  -d '{"camera":{"fov":35,"position":{"x":0,"y":1.5,"z":2.2}},"world":{"ambientLight":0.6}}'
+```
+
+Embed the VRM viewer in a page:
+
+```html
+<script src="/packages/avatar-runtime/web/avatar-widget.js"></script>
+<div id="avatar" style="width:400px;height:600px"></div>
+<script>
+  new AvatarWidget(document.getElementById('avatar'), {
+    vrmUrl:   '/packages/avatar-runtime/assets/vrm/slot/default.vrm',
+    stateUrl: 'http://127.0.0.1:3721/v1/status',
+    pollMs:   400,
+  });
+</script>
+```
+
+## Quick-start: HeyGen streaming avatar
+
+Prerequisites: HeyGen API key + an avatar ID from your HeyGen account.
+
+```bash
+export HEYGEN_API_KEY="your-key"
+export HEYGEN_AVATAR_ID="your-avatar-id"   # from HeyGen dashboard
+
+AVATAR_PROVIDER=heygen npx avatar-runtime
+```
+
+Start a session and stream a talking clip:
+
+```bash
+BASE=http://127.0.0.1:3721
+SESSION=$(curl -s -X POST "$BASE/v1/session/start" \
+  -H "content-type: application/json" \
+  -d '{"personaId":"demo","form":"video"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['sessionId'])")
+
+curl -s -X POST "$BASE/v1/input/text" \
+  -H "content-type: application/json" \
+  -d "{\"sessionId\":\"$SESSION\",\"text\":\"Hello! I am your AI companion.\"}"
+
+# Poll for a video URL in the response:
+curl -s "$BASE/v1/status" | python3 -c "import sys,json; s=json.load(sys.stdin); print(s.get('avatarVideo','(pending)'))"
+```
+
+Graceful degradation: when `HEYGEN_STRICT` is unset (default `false`), the runtime automatically falls back to `mock` if the API key is missing or the request fails — useful for local development without a key.
 
 ## Fallback policy
 
