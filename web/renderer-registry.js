@@ -54,7 +54,7 @@
     var factory = resolve(mediaState);
     if (!factory) return Promise.resolve(null);
     var instance = factory.createInstance();
-    // Merge mediaState into opts so adapters can read model URL, faceControl, etc.
+    // Merge mediaState into opts so adapters can read model URL, control, etc.
     var mountOpts = Object.assign({}, mediaState || {}, opts || {});
     return instance.mount(container, mountOpts).then(function () {
       return instance;

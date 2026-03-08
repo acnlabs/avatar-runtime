@@ -2,6 +2,7 @@ const { HeygenProvider } = require('./provider-heygen');
 const { MockProvider } = require('./provider-mock');
 const { KusaPicsProvider } = require('./provider-kusapics');
 const { Live2DProvider } = require('./provider-live2d');
+const { VrmProvider } = require('./provider-vrm');
 
 function assertProviderContract(provider, name) {
   const required = ['startSession', 'sendText', 'sendAudio', 'switchForm', 'status'];
@@ -21,6 +22,8 @@ function createProvider(name, opts = {}) {
       return assertProviderContract(new KusaPicsProvider(opts), name);
     case 'live2d':
       return assertProviderContract(new Live2DProvider(opts), name);
+    case 'vrm':
+      return assertProviderContract(new VrmProvider(opts), name);
     case 'mock':
       return assertProviderContract(new MockProvider(opts), name);
     default:

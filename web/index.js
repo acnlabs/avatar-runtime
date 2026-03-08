@@ -5,12 +5,13 @@
  *
  * Load order in HTML:
  *   1. renderers/live2d-pixi-adapter.js (optional) → window.OpenPersonaPixiLive2DAdapter
- *   2. renderer-registry.js                        → window.OpenPersonaRendererRegistry
- *   3. renderers/vector-renderer.js                → window.OpenPersonaVectorRenderer
- *   4. this file                                   — registers factories in priority order
+ *   2. renderers/vrm-renderer.js        (optional) → window.OpenPersonaVRMRenderer
+ *   3. renderer-registry.js                        → window.OpenPersonaRendererRegistry
+ *   4. renderers/vector-renderer.js                → window.OpenPersonaVectorRenderer
+ *   5. this file                                   — registers factories in priority order
  *
  * Registration order determines priority: first canHandle() match wins.
- * Live2D pixi adapter is registered first (specific); vector renderer last (fallback).
+ * Specific renderers (Live2D, VRM) are registered first; vector renderer last (fallback).
  */
 (function () {
   'use strict';
@@ -25,6 +26,12 @@
   var pixiAdapter = window.OpenPersonaPixiLive2DAdapter;
   if (pixiAdapter && pixiAdapter.factory) {
     reg.register(pixiAdapter.factory);
+  }
+
+  // Register VRM renderer (specific — handles avatarModelVrmUrl).
+  var vrmRenderer = window.OpenPersonaVRMRenderer;
+  if (vrmRenderer) {
+    reg.register(vrmRenderer);
   }
 
   // Register vector renderer as final fallback (canHandle always returns true).

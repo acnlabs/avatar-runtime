@@ -2,7 +2,7 @@
 name: avatar-runtime
 description: >
   Embeds and controls a virtual avatar using @acnlabs/avatar-runtime.
-  Provides Live2D rendering, vector fallback, and faceControl-driven expression animation
+  Provides Live2D rendering, VRM 3D, vector fallback, and control-driven expression/body/scene animation
   via a provider-agnostic session bridge.
   Use when the user asks for a virtual avatar, face-control animation, Live2D character,
   avatar widget embedding, or when starting/stopping an avatar session.
@@ -21,6 +21,18 @@ export AVATAR_RUNTIME_URL="${AVATAR_RUNTIME_URL:-http://127.0.0.1:3721}"
 ```
 
 ## First-time setup
+
+### VRM 3D avatar (free, no account required)
+
+```bash
+# Run from the package root
+bash scripts/ensure-default-vrm-sample.sh
+```
+
+Downloads `VRM1_Constraint_Twist_Sample.vrm` from `@pixiv/three-vrm` (CC BY 4.0 — free to use with attribution).
+Sets it as `assets/vrm/slot/default.vrm` so `npm run dev:vrm-bridge` serves it automatically.
+
+### Live2D avatar
 
 The Live2D slot (`assets/live2d/slot/`) requires a model file before the `live2d` provider can render.
 
@@ -46,6 +58,10 @@ AVATAR_PROVIDER=mock npx avatar-runtime
 # with Live2D local bridge
 npm run dev:live2d-cubism-bridge          # terminal A — bridge on :3755
 AVATAR_PROVIDER=live2d LIVE2D_ENDPOINT=http://127.0.0.1:3755 npx avatar-runtime  # terminal B
+
+# with VRM 3D avatar (free models from https://hub.vroid.com — place .vrm in assets/vrm/slot/)
+npm run dev:vrm-bridge                    # terminal A — asset server on :3756
+AVATAR_PROVIDER=vrm npx avatar-runtime   # terminal B
 ```
 
 ## Session API
@@ -61,9 +77,57 @@ curl -s -X POST "$AVATAR_RUNTIME_URL/v1/input/text" \
   -H "content-type: application/json" \
   -d '{"sessionId":"<sessionId>","text":"hello"}'
 
-# query current state (includes faceControl for renderer)
+# query current state (includes control namespace for renderer)
 curl -s "$AVATAR_RUNTIME_URL/v1/status"
 ```
+
+## Avatar control API (v0.2)
+
+The runtime uses a unified `control` namespace replacing the legacy `faceControl` field.
+
+```bash
+# Set face expression
+curl -s -X POST "$AVATAR_RUNTIME_URL/v1/control/avatar/set" \
+  -H "content-type: application/json" \
+  -d '{
+    "face": {
+      "pose":  { "yaw": 0.2 },
+      "mouth": { "smile": 0.7 }
+    },
+    "emotion": { "valence": 0.8, "arousal": 0.3, "label": "happy" }
+  }'
+
+# Set body pose (VRM only)
+curl -s -X POST "$AVATAR_RUNTIME_URL/v1/control/avatar/set" \
+  -H "content-type: application/json" \
+  -d '{
+    "body": {
+      "preset": "wave",
+      "skeleton": { "rightUpperArm": { "x": 0, "y": 0, "z": 60 } }
+    }
+  }'
+
+# Set scene (VRM only)
+curl -s -X POST "$AVATAR_RUNTIME_URL/v1/control/scene/set" \
+  -H "content-type: application/json" \
+  -d '{
+    "camera": { "fov": 40, "position": { "x": 0, "y": 1.4, "z": 2.5 } },
+    "world": { "ambientLight": 0.5, "keyLight": { "intensity": 1.2 } }
+  }'
+
+# Full control patch in one call
+curl -s -X POST "$AVATAR_RUNTIME_URL/v1/control/set" \
+  -H "content-type: application/json" \
+  -d '{
+    "avatar": {
+      "face": { "mouth": { "smile": 0.5 } },
+      "emotion": { "label": "neutral" }
+    },
+    "scene": { "world": { "background": "#001133" } }
+  }'
+```
+
+**Partial patches:** Only supplied sub-objects are merged. Each sub-domain (`avatar.face`, `avatar.body`, `avatar.emotion`, `scene`) merges independently — patching `mouth.smile` does not clobber `eyes`.
 
 ## Embedding an avatar widget (browser)
 
@@ -75,11 +139,24 @@ Minimal script-tag usage — vendor scripts are auto-loaded:
 <script>
   var widget = new AvatarWidget(document.getElementById('avatar'), {
     modelUrl: '/packages/avatar-runtime/assets/live2d/slot/default.model.json',
-    stateUrl: 'http://127.0.0.1:3721/v1/status',   // live faceControl polling
+    stateUrl: 'http://127.0.0.1:3721/v1/status',   // polls control namespace
     pollMs:   500,
     // vendorBase: '/your/vendor-dist',              // required for Live2D in production
   });
   widget.ready().catch(function(e) { console.error(e); });
+</script>
+```
+
+VRM 3D avatar:
+
+```html
+<script src="/packages/avatar-runtime/web/avatar-widget.js"></script>
+<div id="avatar" style="width:360px;height:360px"></div>
+<script>
+  new AvatarWidget(document.getElementById('avatar'), {
+    vrmUrl:   '/packages/avatar-runtime/assets/vrm/slot/default.vrm',
+    stateUrl: 'http://127.0.0.1:3721/v1/status',
+  });
 </script>
 ```
 
@@ -95,36 +172,35 @@ Without a model (vector fallback — no files needed):
 </script>
 ```
 
-## Driving face expressions manually
+## Driving avatar control manually (widget)
 
-`update()` accepts a mediaState with a `faceControl` object.  
+`update()` accepts a mediaState with a `control` object.  
 Safe to call before `ready()` resolves — buffered and applied on mount.
 
 ```js
 widget.update({
-  faceControl: {
-    yaw:     0.2,   // head turn left/right  (-1..1)
-    pitch:   0.1,   // head tilt up/down     (-1..1)
-    roll:    0,     // head rotation         (-1..1)
-    blinkL:  0.9,   // left eye open         (0=closed, 1=open)
-    blinkR:  0.9,
-    gazeX:   0,     // eyeball direction     (-1..1)
-    gazeY:   0,
-    jawOpen: 0.3,   // mouth open            (0..1)
-    smile:   0.5,   // mouth form            (0=neutral, 1=smile)
+  control: {
+    avatar: {
+      face: {
+        pose:  { yaw: 0.2, pitch: 0.1, roll: 0 },
+        eyes:  { blinkL: 0.9, blinkR: 0.9, gazeX: 0, gazeY: 0 },
+        mouth: { jawOpen: 0.3, smile: 0.5 }
+      },
+      emotion: { valence: 0.7, arousal: 0.2, label: 'content', intensity: 0.6 }
+    }
   }
 });
 ```
 
-## faceControl from runtime state
+## control from runtime state
 
-The `/v1/status` response includes a `faceControl` field produced by the active provider.  
+The `/v1/status` response includes a `control` field produced by the active provider merged with agent-set values.  
 `AvatarWidget` with `stateUrl` polls this automatically at `pollMs` interval.
 
 For manual polling:
 
 ```bash
-curl -s "$AVATAR_RUNTIME_URL/v1/status" | jq .faceControl
+curl -s "$AVATAR_RUNTIME_URL/v1/status" | jq .control
 ```
 
 ## Provider configuration
@@ -134,6 +210,7 @@ curl -s "$AVATAR_RUNTIME_URL/v1/status" | jq .faceControl
 | `mock` | — | Development default, no key needed |
 | `heygen` | `HEYGEN_API_KEY` | Real streaming. `HEYGEN_STRICT=false` degrades to mock |
 | `live2d` | `LIVE2D_ENDPOINT` | Local bridge required. `LIVE2D_STRICT=false` degrades |
+| `vrm` | `VRM_BRIDGE_ENDPOINT` | Local 3D avatar. Free models from [VRoid Hub](https://hub.vroid.com). No API key. |
 | `kusapics` | `KUSAPICS_API_KEY`, `KUSAPICS_BASE_URL` | Anime-oriented |
 
 ## Fallback policy

@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Avatar Runtime — Control Demo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0f0f13;color:#e0e0e0;font-family:-apple-system,sans-serif;min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:32px 20px}
+h1{font-size:22px;font-weight:600;color:#fff;margin-bottom:6px}
+.sub{font-size:13px;color:#666;margin-bottom:32px}
+.grid{display:grid;grid-template-columns:repeat(3,300px);gap:20px;margin-bottom:24px}
+.card{background:#18181f;border:1px solid #2a2a35;border-radius:16px;overflow:hidden}
+.card.on{border-color:#6c63ff;box-shadow:0 0 0 1px #6c63ff30}
+.ch{display:flex;align-items:center;gap:8px;padding:13px 16px 11px;border-bottom:1px solid #2a2a35}
+.badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;text-transform:uppercase}
+.bl{background:#1a3a1a;color:#4caf50}.bn{background:#1a1a3a;color:#6c63ff}.bs{background:#2a2215;color:#ff9800}
+.ct{font-size:14px;font-weight:600}.cd{font-size:11px;color:#555;margin-left:auto}
+.area{width:300px;height:300px;position:relative;background:#0c0c10;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;text-align:center;width:100%;height:100%}
+.phi{font-size:48px;filter:grayscale(1) opacity(.4)}
+.ph p{font-size:11px;color:#555;line-height:1.6;max-width:190px}
+.cf{padding:10px 16px;border-top:1px solid #2a2a35;display:flex;flex-direction:column;gap:3px}
+.st{font-size:11px;color:#555;display:flex;justify-content:space-between}
+.st span:last-child{color:#888;font-family:monospace}
+.ctrl{background:#18181f;border:1px solid #2a2a35;border-radius:16px;padding:20px 24px;width:940px;margin-bottom:16px}
+.ctrl h2{font-size:13px;font-weight:600;color:#aaa;margin-bottom:14px}
+.sliders{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.sg{display:flex;flex-direction:column;gap:4px}
+.sg label{font-size:11px;color:#666;display:flex;justify-content:space-between}
+.sg label span{color:#888;font-family:monospace}
+input[type=range]{width:100%;accent-color:#6c63ff}
+.sr{display:flex;align-items:center;gap:6px;font-size:11px;color:#555;margin-top:5px}
+.dot{width:6px;height:6px;border-radius:50%;background:#4caf50}
+.dot.off{background:#444}
+.vrm-drop{border:1.5px dashed #333;border-radius:8px;padding:8px 12px;font-size:11px;color:#555;cursor:pointer;text-align:center;transition:border-color .15s}
+.vrm-drop:hover,.vrm-drop.drag{border-color:#6c63ff;color:#6c63ff}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.preset-btn{background:#1f1f2a;border:1px solid #2a2a35;border-radius:6px;padding:3px 10px;font-size:11px;color:#aaa;cursor:pointer;transition:border-color .12s}
+.preset-btn:hover{border-color:#6c63ff;color:#fff}
+</style>
+</head>
+<body>
+<h1>Avatar Runtime · Control Demo</h1>
+<p class="sub">@acnlabs/avatar-runtime &nbsp;·&nbsp; control namespace v0.2 &nbsp;·&nbsp; 多渲染器</p>
+
+<div class="grid">
+
+  <div class="card on" id="cardVector">
+    <div class="ch"><span class="badge bl">Live</span><span class="ct">Vector Renderer</span><span class="cd">Zero-dep fallback</span></div>
+    <div class="area"><div id="vectorContainer" style="width:300px;height:300px"></div></div>
+    <div class="cf">
+      <div class="st"><span>Provider</span><span>mock</span></div>
+      <div class="st"><span>Renderer</span><span>vector-renderer.js</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="cardVrm">
+    <div class="ch"><span class="badge bn">New</span><span class="ct">VRM 3D Renderer</span><span class="cd">Three.js + @pixiv/three-vrm</span></div>
+    <div class="area" id="vrmArea">
+      <div class="ph" id="vrmPh">
+        <div class="phi" id="vrmIcon">⏳</div>
+        <p id="vrmMsg">正在加载 Three.js…</p>
+        <label class="vrm-drop" id="vrmDrop" style="display:none">
+          <input type="file" accept=".vrm" style="display:none" id="vrmFile">
+          拖放 .vrm 文件 或 点击选择
+        </label>
+      </div>
+    </div>
+    <div class="cf">
+      <div class="st"><span>Provider</span><span>vrm</span></div>
+      <div class="st"><span>Deps</span><span>three@0.175 · CDN lazy</span></div>
+      <div class="st"><span>Model</span><span id="vrmModelName">—</span></div>
+    </div>
+  </div>
+
+  <div class="card" id="cardState">
+    <div class="ch"><span class="badge bs">State</span><span class="ct">control</span><span class="cd">/v1/status</span></div>
+    <div class="area" style="padding:14px;align-items:flex-start;justify-content:flex-start;overflow:auto">
+      <pre id="controlJson" style="font-size:11px;color:#6c63ff;font-family:monospace;line-height:1.7;white-space:pre-wrap"></pre>
+    </div>
+    <div class="cf">
+      <div class="st"><span>Runtime</span><span id="runtimeProv">—</span></div>
+      <div class="sr"><div class="dot off" id="connDot"></div><span id="connLabel">未连接 (3721)</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Face control -->
+<div class="ctrl">
+  <h2>control.avatar.face — 实时驱动所有渲染器</h2>
+  <div class="sliders">
+    <div class="sg"><label>pose.yaw（左右）<span id="vYaw">0.00</span></label><input type="range" id="sYaw" min="0" max="100" value="50"></div>
+    <div class="sg"><label>pose.pitch（抬低）<span id="vPitch">0.00</span></label><input type="range" id="sPitch" min="0" max="100" value="50"></div>
+    <div class="sg"><label>pose.roll（侧倾）<span id="vRoll">0.00</span></label><input type="range" id="sRoll" min="0" max="100" value="50"></div>
+    <div class="sg"><label>eyes.blinkL<span id="vBlinkL">1.00</span></label><input type="range" id="sBlinkL" min="0" max="100" value="100"></div>
+    <div class="sg"><label>eyes.blinkR<span id="vBlinkR">1.00</span></label><input type="range" id="sBlinkR" min="0" max="100" value="100"></div>
+    <div class="sg"><label>eyes.gazeX<span id="vGazeX">0.00</span></label><input type="range" id="sGazeX" min="0" max="100" value="50"></div>
+    <div class="sg"><label>eyes.gazeY<span id="vGazeY">0.00</span></label><input type="range" id="sGazeY" min="0" max="100" value="50"></div>
+    <div class="sg"><label>mouth.jawOpen<span id="vJawOpen">0.00</span></label><input type="range" id="sJawOpen" min="0" max="100" value="0"></div>
+    <div class="sg"><label>mouth.smile<span id="vSmile">0.00</span></label><input type="range" id="sSmile" min="0" max="100" value="0"></div>
+  </div>
+</div>
+
+<!-- Emotion control -->
+<div class="ctrl">
+  <h2>control.avatar.emotion — 语义情绪信号（VRM 表情驱动）</h2>
+  <div class="sliders">
+    <div class="sg"><label>valence（正负）<span id="vValence">0.00</span></label><input type="range" id="sValence" min="0" max="100" value="50"></div>
+    <div class="sg"><label>arousal（激活度）<span id="vArousal">0.00</span></label><input type="range" id="sArousal" min="0" max="100" value="50"></div>
+    <div class="sg"><label>intensity<span id="vEmotIntensity">0.50</span></label><input type="range" id="sEmotIntensity" min="0" max="100" value="50"></div>
+  </div>
+  <div class="presets" id="emotionLabels" style="margin-top:12px">
+    <button class="preset-btn" data-label="neutral">neutral</button>
+    <button class="preset-btn" data-label="happy">happy</button>
+    <button class="preset-btn" data-label="sad">sad</button>
+    <button class="preset-btn" data-label="angry">angry</button>
+    <button class="preset-btn" data-label="surprised">surprised</button>
+    <button class="preset-btn" data-label="relaxed">relaxed</button>
+  </div>
+</div>
+
+<!-- Body presets -->
+<div class="ctrl">
+  <h2>control.avatar.body — 姿态预设（VRM）</h2>
+  <div class="presets" id="bodyPresets">
+    <button class="preset-btn" data-preset="idle">idle</button>
+    <button class="preset-btn" data-preset="wave">wave</button>
+    <button class="preset-btn" data-preset="thinking">thinking</button>
+    <button class="preset-btn" data-preset="bow">bow</button>
+    <button class="preset-btn" data-preset="reset">reset</button>
+  </div>
+</div>
+
+<!-- Scene control -->
+<div class="ctrl">
+  <h2>control.scene — 相机 &amp; 场景（VRM）</h2>
+  <div class="sliders">
+    <div class="sg"><label>camera.fov<span id="vFov">30</span></label><input type="range" id="sFov" min="10" max="90" value="30"></div>
+    <div class="sg"><label>camera.position.z<span id="vCamZ">1.80</span></label><input type="range" id="sCamZ" min="50" max="500" value="180"></div>
+    <div class="sg"><label>world.ambientLight<span id="vAmbient">0.60</span></label><input type="range" id="sAmbient" min="0" max="100" value="60"></div>
+    <div class="sg"><label>world.keyLight<span id="vKeyLight">1.00</span></label><input type="range" id="sKeyLight" min="0" max="200" value="100"></div>
+  </div>
+</div>
+
+<script src="renderer-registry.js"></script>
+<script src="renderers/live2d-pixi-adapter.js"></script>
+<script src="renderers/vrm-renderer.js"></script>
+<script src="renderers/vector-renderer.js"></script>
+<script src="index.js"></script>
+<script>
+(function(){
+'use strict';
+
+// Unified control state (v0.2 schema)
+var control = {
+  avatar: {
+    face: {
+      pose:  {yaw:0, pitch:0, roll:0},
+      eyes:  {blinkL:1, blinkR:1, gazeX:0, gazeY:0},
+      brows: {browInner:0, browOuterL:0, browOuterR:0},
+      mouth: {jawOpen:0, smile:0, mouthPucker:0},
+      source: 'agent'
+    },
+    emotion: {
+      valence:0, arousal:0, label:'neutral', intensity:0.5, source:'agent'
+    },
+    body: {
+      preset:'idle',
+      skeleton:{
+        hips:{x:0,y:0,z:0}, spine:{x:0,y:0,z:0}, chest:{x:0,y:0,z:0},
+        neck:{x:0,y:0,z:0},
+        leftUpperArm:{x:0,y:0,z:0}, leftLowerArm:{x:0,y:0,z:0},
+        rightUpperArm:{x:0,y:0,z:0}, rightLowerArm:{x:0,y:0,z:0},
+        leftUpperLeg:{x:0,y:0,z:0}, rightUpperLeg:{x:0,y:0,z:0}
+      },
+      source:'agent'
+    }
+  },
+  scene: {
+    camera: {position:{x:0,y:1.4,z:1.8}, target:{x:0,y:1.2,z:0}, fov:30},
+    world:  {background:'#0c0c10', ambientLight:0.6, keyLight:{intensity:1.0, direction:{x:1,y:2,z:2}}},
+    props:  [],
+    source: 'agent'
+  }
+};
+
+var runtimeBase = 'http://localhost:3721';
+var postPending = false;
+
+function postControlSet() {
+  if (postPending) return;
+  postPending = true;
+  fetch(runtimeBase + '/v1/control/set', {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify(control)
+  }).catch(function(){}).finally(function(){ postPending = false; });
+}
+
+function updateJson() {
+  document.getElementById('controlJson').textContent = JSON.stringify(control, null, 2);
+}
+
+// ── Face sliders ───────────────────────────────────────────────────────────
+// [sliderId, displayId, sub-object ref getter, field, raw0-100, hint]
+var faceSliders = [
+  ['sYaw','vYaw',      function(){return control.avatar.face.pose; }, 'yaw',   50,'−1→1'],
+  ['sPitch','vPitch',  function(){return control.avatar.face.pose; }, 'pitch', 50,'−1→1'],
+  ['sRoll','vRoll',    function(){return control.avatar.face.pose; }, 'roll',  50,'−1→1'],
+  ['sBlinkL','vBlinkL',function(){return control.avatar.face.eyes; }, 'blinkL',100,'0→1'],
+  ['sBlinkR','vBlinkR',function(){return control.avatar.face.eyes; }, 'blinkR',100,'0→1'],
+  ['sGazeX','vGazeX',  function(){return control.avatar.face.eyes; }, 'gazeX', 50,'−1→1'],
+  ['sGazeY','vGazeY',  function(){return control.avatar.face.eyes; }, 'gazeY', 50,'−1→1'],
+  ['sJawOpen','vJawOpen',function(){return control.avatar.face.mouth;},'jawOpen',0,'0→1'],
+  ['sSmile','vSmile',  function(){return control.avatar.face.mouth;},'smile',   0,'0→1']
+];
+
+function rawToVal(raw100, hint) {
+  return hint === '0→1' ? raw100 / 100 : (raw100 / 100 * 2 - 1);
+}
+
+faceSliders.forEach(function(m) {
+  var el = document.getElementById(m[0]);
+  if (!el) return;
+  el.value = m[4];
+  var initVal = rawToVal(m[4], m[5]);
+  document.getElementById(m[1]).textContent = initVal.toFixed(2);
+  m[2]()[m[3]] = +initVal.toFixed(3);
+  el.addEventListener('input', function() {
+    var val = rawToVal(+this.value, m[5]);
+    m[2]()[m[3]] = +val.toFixed(3);
+    document.getElementById(m[1]).textContent = val.toFixed(2);
+    updateJson();
+    postControlSet();
+  });
+});
+
+// ── Emotion sliders ────────────────────────────────────────────────────────
+var emotSliders = [
+  ['sValence','vValence',       'valence',  50,'−1→1'],
+  ['sArousal','vArousal',       'arousal',  50,'−1→1'],
+  ['sEmotIntensity','vEmotIntensity','intensity',50,'0→1']
+];
+emotSliders.forEach(function(m) {
+  var el = document.getElementById(m[0]);
+  if (!el) return;
+  var initVal = rawToVal(m[3], m[4]);
+  el.value = m[3];
+  document.getElementById(m[1]).textContent = initVal.toFixed(2);
+  control.avatar.emotion[m[2]] = +initVal.toFixed(3);
+  el.addEventListener('input', function() {
+    var val = rawToVal(+this.value, m[4]);
+    control.avatar.emotion[m[2]] = +val.toFixed(3);
+    document.getElementById(m[1]).textContent = val.toFixed(2);
+    updateJson();
+    postControlSet();
+  });
+});
+
+// ── Emotion label presets ─────────────────────────────────────────────────
+document.getElementById('emotionLabels').addEventListener('click', function(e) {
+  var btn = e.target.closest('.preset-btn');
+  if (!btn) return;
+  control.avatar.emotion.label = btn.dataset.label;
+  updateJson();
+  postControlSet();
+});
+
+// ── Body presets ──────────────────────────────────────────────────────────
+var BODY_PRESETS = {
+  idle:     { preset:'idle',     skeleton:{ leftUpperArm:{x:0,y:0,z:-20},  rightUpperArm:{x:0,y:0,z:20}  } },
+  wave:     { preset:'wave',     skeleton:{ rightUpperArm:{x:0,y:0,z:60},  rightLowerArm:{x:0,y:0,z:40}  } },
+  thinking: { preset:'thinking', skeleton:{ rightUpperArm:{x:30,y:0,z:10}, rightLowerArm:{x:30,y:0,z:0}  } },
+  bow:      { preset:'bow',      skeleton:{ spine:{x:25,y:0,z:0},          chest:{x:10,y:0,z:0}           } },
+  reset:    { preset:'idle',     skeleton:{
+    hips:{x:0,y:0,z:0}, spine:{x:0,y:0,z:0}, chest:{x:0,y:0,z:0}, neck:{x:0,y:0,z:0},
+    leftUpperArm:{x:0,y:0,z:0}, leftLowerArm:{x:0,y:0,z:0},
+    rightUpperArm:{x:0,y:0,z:0}, rightLowerArm:{x:0,y:0,z:0},
+    leftUpperLeg:{x:0,y:0,z:0}, rightUpperLeg:{x:0,y:0,z:0}
+  }}
+};
+document.getElementById('bodyPresets').addEventListener('click', function(e) {
+  var btn = e.target.closest('.preset-btn');
+  if (!btn) return;
+  var p = BODY_PRESETS[btn.dataset.preset];
+  if (!p) return;
+  control.avatar.body.preset = p.preset;
+  Object.assign(control.avatar.body.skeleton, p.skeleton);
+  updateJson();
+  postControlSet();
+});
+
+// ── Scene sliders ─────────────────────────────────────────────────────────
+document.getElementById('sFov').addEventListener('input', function() {
+  var v = +this.value;
+  control.scene.camera.fov = v;
+  document.getElementById('vFov').textContent = v;
+  updateJson(); postControlSet();
+});
+document.getElementById('sCamZ').addEventListener('input', function() {
+  var v = +(this.value / 100).toFixed(2);
+  control.scene.camera.position.z = v;
+  document.getElementById('vCamZ').textContent = v.toFixed(2);
+  updateJson(); postControlSet();
+});
+document.getElementById('sAmbient').addEventListener('input', function() {
+  var v = +(this.value / 100).toFixed(2);
+  control.scene.world.ambientLight = v;
+  document.getElementById('vAmbient').textContent = v.toFixed(2);
+  updateJson(); postControlSet();
+});
+document.getElementById('sKeyLight').addEventListener('input', function() {
+  var v = +(this.value / 100).toFixed(2);
+  control.scene.world.keyLight.intensity = v;
+  document.getElementById('vKeyLight').textContent = v.toFixed(2);
+  updateJson(); postControlSet();
+});
+
+updateJson();
+
+// ── Vector renderer ───────────────────────────────────────────────────────
+var vf = window.OpenPersonaVectorRenderer;
+if (vf) {
+  var vi = vf.createInstance();
+  vi.mount(document.getElementById('vectorContainer'), {width:300, height:300}).then(function() {
+    (function t() { requestAnimationFrame(t); vi.update({control: control}); })();
+  });
+}
+
+// ── VRM renderer ──────────────────────────────────────────────────────────
+var vrmF    = window.OpenPersonaVRMRenderer;
+var vrmInst = null;
+var vrmArea = document.getElementById('vrmArea');
+var vrmPh   = document.getElementById('vrmPh');
+
+function mountVrm(modelUrl, name) {
+  var container = document.createElement('div');
+  container.style.cssText = 'width:300px;height:300px;position:absolute;top:0;left:0';
+  vrmArea.appendChild(container);
+  vrmInst = vrmF.createInstance();
+  document.getElementById('vrmMsg').textContent = '⏳ 加载模型…';
+  vrmInst.mount(container, {avatarModelVrmUrl: modelUrl, control: control})
+    .then(function() {
+      vrmPh.style.display = 'none';
+      document.getElementById('cardVrm').classList.add('on');
+      document.getElementById('vrmModelName').textContent = name || 'loaded';
+      (function t() { requestAnimationFrame(t); vrmInst.update({control: control}); })();
+    })
+    .catch(function(e) {
+      container.remove(); vrmInst = null;
+      document.getElementById('vrmIcon').textContent = '⚠️';
+      document.getElementById('vrmMsg').textContent = '加载失败: ' + (e && e.message || e);
+      document.getElementById('vrmDrop').style.display = 'block';
+    });
+}
+
+if (vrmF) {
+  var BRIDGE = 'http://127.0.0.1:3756';
+  document.getElementById('vrmMsg').textContent = '⏳ 检测本地 VRM bridge…';
+  fetch(BRIDGE + '/assets/vrm/slot/list')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var models = data.models || data.files || [];
+      if (!models.length) throw new Error('slot 中无模型');
+      var m = models.find(function(x) { return x.name !== 'default.vrm'; }) || models[0];
+      var url = BRIDGE + m.url;
+      document.getElementById('vrmMsg').textContent = '⏳ 加载 ' + m.name + '…';
+      mountVrm(url, m.name);
+    })
+    .catch(function() {
+      document.getElementById('vrmIcon').textContent = '🧊';
+      document.getElementById('vrmMsg').textContent = 'Three.js ✓  拖放 .vrm 文件加载';
+      document.getElementById('vrmDrop').style.display = 'block';
+      document.getElementById('cardVrm').classList.add('on');
+    });
+} else {
+  document.getElementById('vrmIcon').textContent = '⚠️';
+  document.getElementById('vrmMsg').textContent = 'vrm-renderer.js 未加载';
+}
+
+// File drop / picker
+var dropEl = document.getElementById('vrmDrop');
+var fileEl = document.getElementById('vrmFile');
+dropEl.addEventListener('click', function() { fileEl.click(); });
+fileEl.addEventListener('change', function() {
+  var f = this.files[0]; if (!f) return;
+  mountVrm(URL.createObjectURL(f), f.name);
+});
+dropEl.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('drag'); });
+dropEl.addEventListener('dragleave', function() { this.classList.remove('drag'); });
+dropEl.addEventListener('drop', function(e) {
+  e.preventDefault(); this.classList.remove('drag');
+  var f = e.dataTransfer.files[0]; if (!f || !f.name.endsWith('.vrm')) return;
+  mountVrm(URL.createObjectURL(f), f.name);
+});
+
+// ── Poll runtime ──────────────────────────────────────────────────────────
+function poll() {
+  fetch('http://127.0.0.1:3721/v1/status').then(function(r) { return r.json(); }).then(function(d) {
+    document.getElementById('connDot').classList.remove('off');
+    document.getElementById('connLabel').textContent = '已连接 · ' + d.provider;
+    document.getElementById('runtimeProv').textContent = d.provider || '—';
+    if (d.control) {
+      document.getElementById('controlJson').textContent = JSON.stringify(d.control, null, 2);
+    }
+  }).catch(function() {
+    document.getElementById('connDot').classList.add('off');
+    document.getElementById('connLabel').textContent = '未连接 (3721)';
+  });
+}
+poll(); setInterval(poll, 2000);
+
+})();
+</script>
+</body>
+</html>

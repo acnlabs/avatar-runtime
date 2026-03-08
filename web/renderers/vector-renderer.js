@@ -5,8 +5,26 @@
 
   var TAU = Math.PI * 2;
 
+  // Flatten control.avatar.face nested structure to a working flat object.
+  function normalizeFace(face) {
+    if (!face) return {};
+    var pose  = face.pose  || {};
+    var eyes  = face.eyes  || {};
+    var mouth = face.mouth || {};
+    return {
+      yaw:     pose.yaw    != null ? pose.yaw    : 0,
+      pitch:   pose.pitch  != null ? pose.pitch  : 0,
+      blinkL:  eyes.blinkL != null ? eyes.blinkL : 1,
+      blinkR:  eyes.blinkR != null ? eyes.blinkR : 1,
+      gazeX:   eyes.gazeX  != null ? eyes.gazeX  : 0,
+      gazeY:   eyes.gazeY  != null ? eyes.gazeY  : 0,
+      jawOpen: mouth.jawOpen != null ? mouth.jawOpen : 0,
+      smile:   mouth.smile   != null ? mouth.smile   : 0,
+    };
+  }
+
   function drawFace(ctx, w, h, face) {
-    face = face || {};
+    face = normalizeFace(face);
     var cx = w / 2;
     var cy = h / 2;
     var r  = Math.min(w, h) * 0.38;
@@ -128,7 +146,8 @@
 
       update: function (mediaState) {
         if (!mounted) return;
-        lastFace = (mediaState && mediaState.faceControl) || lastFace;
+        var face = mediaState && mediaState.control && mediaState.control.avatar && mediaState.control.avatar.face;
+        if (face) lastFace = face;
         scheduleRender();
       },
 
@@ -141,7 +160,7 @@
       },
 
       getState: function () {
-        return { mounted: mounted, faceControl: lastFace };
+        return { mounted: mounted, face: lastFace };
       }
     };
   }

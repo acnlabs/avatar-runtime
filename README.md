@@ -11,7 +11,7 @@ Full persona web interaction (chat UI, voice, persona state display) is the resp
 
 ```
 avatar-runtime
-  ├── Node.js runtime server  — provider bridge, session management, faceControl state
+  ├── Node.js runtime server  — provider bridge, session management, control state
   ├── web/                    — browser-side rendering layer
   │     ├── Renderer Registry — plug-in renderer selection (canHandle / createInstance)
   │     ├── AvatarWidget      — embeddable avatar component (<script> or npm)
@@ -57,7 +57,7 @@ curl -s -X POST http://127.0.0.1:3721/v1/input/text \
   -H 'content-type: application/json' \
   -d '{"sessionId":"<from above>","text":"hello"}'
 
-# query status (includes faceControl for the renderer)
+# query status (includes control namespace for the renderer)
 curl -s "http://127.0.0.1:3721/v1/status"
 ```
 
@@ -78,7 +78,7 @@ The simplest way to embed an avatar in any web page.
 <script>
   var widget = new AvatarWidget(document.getElementById('avatar'), {
     modelUrl:   '/packages/avatar-runtime/assets/live2d/slot/default.model.json',
-    stateUrl:   'http://127.0.0.1:3721/v1/status',  // optional — live faceControl polling
+    stateUrl:   'http://127.0.0.1:3721/v1/status',  // optional — live control state polling
     pollMs:     500,
     // vendorBase: '/your/vendor-dist',  // see "Live2D vendor scripts" note below
     width:      360,
@@ -89,8 +89,8 @@ The simplest way to embed an avatar in any web page.
     .then(function () { console.log('avatar mounted'); })
     .catch(function (err) { console.error('mount failed', err); });
 
-  // manual faceControl push
-  widget.update({ faceControl: { yaw: 0.2, blinkL: 0.8 } });
+  // manual control push
+  widget.update({ control: { avatar: { face: { pose: { yaw: 0.2 }, eyes: { blinkL: 0.8, blinkR: 0.8 } } } } });
 
   // cleanup
   widget.destroy();
@@ -121,7 +121,7 @@ await widget.ready();
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `modelUrl` | string | `''` | Live2D model URL (`.model.json` or `.model3.json`). If empty, falls back to vector renderer. |
-| `stateUrl` | string | — | Runtime state endpoint to poll for `faceControl` updates. |
+| `stateUrl` | string | — | Runtime state endpoint to poll for `control` state updates. |
 | `pollMs` | number | `500` | Polling interval in ms. |
 | `vendorBase` | string | `/demo/vendor-dist` | Directory from which Live2D vendor scripts are auto-loaded. Default works in development; set to your own path in production. |
 | `width` | number | `360` | Canvas width in px. |
@@ -159,14 +159,19 @@ var reg = window.OpenPersonaRendererRegistry;
 
 var mediaState = {
   avatarModel3Url: '/packages/avatar-runtime/assets/live2d/slot/default.model.json',
-  faceControl: { yaw: 0, pitch: 0, blinkL: 1, blinkR: 1, jawOpen: 0, smile: 0 },
+  control: {
+    avatar: {
+      face: { pose: { yaw: 0 }, eyes: { blinkL: 1, blinkR: 1 }, mouth: { jawOpen: 0, smile: 0 } },
+      emotion: { label: 'neutral', intensity: 0.5 }
+    }
+  },
   render: { rendererMode: 'pixi' }
 };
 
 // create + mount — auto-selects renderer based on mediaState
 reg.create(mediaState, container, { width: 360, height: 360 })
   .then(function (instance) {
-    instance.update({ faceControl: { yaw: 0.1 } });
+    instance.update({ control: { avatar: { face: { pose: { yaw: 0.1 } } } } });
     // instance.unmount() when done
   });
 
@@ -202,7 +207,7 @@ var MyRendererFactory = {
   createInstance: function () {
     return {
       mount:   function (container, opts) { /* ... */ return Promise.resolve(); },
-      update:  function (mediaState) { /* apply faceControl */ },
+      update:  function (mediaState) { /* apply mediaState.control */ },
       unmount: function () { /* cleanup */ },
     };
   }
@@ -236,11 +241,33 @@ No model file is ever required to start the system.
 | `mock` | — | Fully local, no API key. Default for development. |
 | `heygen` | `HEYGEN_API_KEY` | Real streaming. Set `HEYGEN_STRICT=false` to degrade to mock if key missing. |
 | `live2d` | `LIVE2D_ENDPOINT` | Local bridge. Set `LIVE2D_STRICT=false` to degrade to mock. |
+| `vrm` | `VRM_BRIDGE_ENDPOINT` | Local 3D avatar. Free models from [VRoid Hub](https://hub.vroid.com). No API key. |
 | `kusapics` | `KUSAPICS_API_KEY` | Anime-oriented provider. Set `KUSAPICS_STRICT=false` to degrade. |
 
 ```bash
 AVATAR_PROVIDER=heygen HEYGEN_API_KEY=<key> npm start
 ```
+
+### VRM local bridge
+
+```bash
+# terminal A — start VRM asset server (serves .vrm files from assets/vrm/slot/)
+npm run dev:vrm-bridge
+# open http://127.0.0.1:3756/assets/vrm/slot/list to confirm
+
+# terminal B — start runtime with vrm provider
+AVATAR_PROVIDER=vrm npm start
+```
+
+Place any `.vrm` file in `assets/vrm/slot/` and it will be served automatically.
+Free CC-licensed models: [VRoid Hub](https://hub.vroid.com)
+
+```bash
+# Override model URL directly (no bridge needed for remote URLs)
+VRM_MODEL_URL=https://example.com/avatar.vrm AVATAR_PROVIDER=vrm npm start
+```
+
+---
 
 ### Live2D local bridge
 
@@ -259,6 +286,18 @@ Set a custom model:
 LIVE2D_MODEL3_URL=http://127.0.0.1:8080/models/haru/haru.model3.json \
   npm run dev:live2d-cubism-bridge
 ```
+
+---
+
+## Assets — VRM Model Slot
+
+```
+assets/vrm/
+  slot/          — place .vrm files here; served at /assets/vrm/slot/* by vrm-asset-server
+  README.md      — licensing guide + VRoid Hub quickstart
+```
+
+See `assets/vrm/README.md` for model licensing guidance and embedding examples.
 
 ---
 
@@ -322,7 +361,7 @@ Output: timestamped report in `reports/live2d-acceptance/`.
 
 | Document | Description |
 |----------|-------------|
-| `docs/CONTRACT.md` | Runtime API contract (endpoint shapes, faceControl schema) |
+| `docs/CONTRACT.md` | Runtime API contract (endpoint shapes, control schema) |
 | `docs/PROVIDER-CONTRACT.md` | Interface every provider must implement |
 | `docs/PROVIDER-CAPABILITIES.md` | Provider capability matrix |
 | `docs/LIVE2D-BRIDGE-CONTRACT.md` | Live2D bridge protocol |
@@ -334,7 +373,7 @@ Output: timestamped report in `reports/live2d-acceptance/`.
 ## Skill Entry (for agent distribution)
 
 See `skill/avatar-runtime/SKILL.md`.  
-Agents using this skill can start a session, send input, and read faceControl state via `curl` without knowing the provider implementation.
+Agents using this skill can start a session, send input, and read control state via `curl` without knowing the provider implementation.
 
 ---
 

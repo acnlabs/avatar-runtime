@@ -32,12 +32,13 @@
  *   Attach the renderer to the given DOM container.
  *   When called via `OpenPersonaRendererRegistry.create(mediaState, container, opts)`,
  *   `opts` will contain a shallow merge of `mediaState` and any explicit opts:
- *   - `opts.avatarModel3Url` — Live2D model URL (from mediaState)
- *   - `opts.modelJsonUrl`    — same URL, normalized key (prefer this)
- *   - `opts.faceControl`     — initial face parameters (from mediaState)
+ *   - `opts.avatarModel3Url`   — Live2D model URL (from mediaState)
+ *   - `opts.modelJsonUrl`      — same URL, normalized key (prefer this)
+ *   - `opts.avatarModelVrmUrl` — VRM model URL (from mediaState)
+ *   - `opts.control`           — initial control state (from mediaState)
  *   - `opts.width` / `opts.height` — explicit size override (from explicit opts)
  * @property {function(mediaState: MediaState): void} update
- *   Apply a new mediaState (faceControl, etc.) to a mounted renderer.
+ *   Apply a new mediaState (control.avatar.face, control.scene, etc.) to a mounted renderer.
  * @property {function(): void} unmount
  *   Detach and clean up the renderer; after this call the instance is spent.
  * @property {function(): object} [getState]
@@ -47,11 +48,19 @@
 /**
  * Shape of the mediaState object passed to canHandle / update.
  *
+ * Renderers read avatar/scene control from `control` (v0.2+).
+ *
  * @typedef {Object} MediaState
- * @property {string}  [avatarModel3Url]     — Live2D model URL (.model.json / .model3.json)
- * @property {object}  [faceControl]         — face parameter object from state.json
+ * @property {string}  [avatarModel3Url]       — Live2D model URL (.model.json / .model3.json)
+ * @property {string}  [avatarModelVrmUrl]      — VRM model URL (.vrm); triggers VRM renderer when present
+ * @property {object}  [control]                — unified control namespace (v0.2+)
+ * @property {object}  [control.avatar]         — avatar control sub-domain
+ * @property {object}  [control.avatar.face]    — face pose/expression parameters
+ * @property {object}  [control.avatar.body]    — body skeleton/IK parameters
+ * @property {object}  [control.avatar.emotion] — semantic emotion signal
+ * @property {object}  [control.scene]          — scene camera/world parameters
  * @property {object}  [render]
- * @property {string}  [render.rendererMode] — 'pixi' | 'l2dwidget' | 'vector'
+ * @property {string}  [render.rendererMode]    — 'pixi' | 'l2dwidget' | 'vector'
  */
 
 /**

@@ -1,6 +1,6 @@
 {
   "name": "@acnlabs/avatar-runtime",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Provider-agnostic avatar runtime for OpenPersona (MVP)",
   "author": "acnlabs",
   "repository": {
@@ -11,7 +11,7 @@
     "avatar",
     "live2d",
     "virtual-avatar",
-    "face-control",
+    "avatar-control",
     "openpersona",
     "agent",
     "persona"
@@ -30,7 +30,9 @@
     "dev": "AVATAR_PROVIDER=mock node bin/avatar-runtime.js --port 3721",
     "mock:live2d-bridge": "node bridges/live2d-bridge-mock.js",
     "dev:live2d-cubism-bridge": "node bridges/live2d-cubism-web-bridge.js",
-    "accept:live2d": "bash dev-scripts/accept-live2d.sh"
+    "dev:vrm-bridge": "node bridges/vrm-asset-server.js",
+    "accept:live2d": "bash dev-scripts/accept-live2d.sh",
+    "setup:vrm-sample": "bash scripts/ensure-default-vrm-sample.sh"
   },
   "engines": {
     "node": ">=18"
@@ -46,9 +48,11 @@
     "assets/live2d/licenses/",
     "assets/live2d/slot/default.model.json",
     "assets/live2d/slot/default.model3.json",
-    "assets/live2d/slot/expressions/",
-    "assets/live2d/slot/motions/",
-    "assets/live2d/slot/textures/",
+    "assets/live2d/slot/expressions/.gitkeep",
+    "assets/live2d/slot/motions/.gitkeep",
+    "assets/live2d/slot/textures/.gitkeep",
+    "assets/vrm/README.md",
+    "assets/vrm/slot/.gitkeep",
     "README.md"
   ]
 }

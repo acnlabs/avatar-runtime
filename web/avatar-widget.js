@@ -71,6 +71,7 @@
     if (_registryReady) return _registryReady;
     _registryReady = loadScript(base + 'renderer-registry.js')
       .then(function () { return loadScript(base + 'renderers/live2d-pixi-adapter.js'); })
+      .then(function () { return loadScript(base + 'renderers/vrm-renderer.js'); })
       .then(function () { return loadScript(base + 'renderers/vector-renderer.js'); })
       .then(function () { return loadScript(base + 'index.js'); });
     return _registryReady;
@@ -81,13 +82,15 @@
   /**
    * @param {HTMLElement} container  - DOM element to render into
    * @param {object}      opts
-   * @param {string}      [opts.modelUrl]    - Live2D model URL (.model.json / .model3.json)
-   * @param {string}      [opts.stateUrl]    - Polling endpoint for live mediaState updates
-   * @param {number}      [opts.pollMs=500]  - Polling interval in ms
-   * @param {string}      [opts.vendorBase]  - Base path for pixi/live2d vendor scripts
+   * @param {string}      [opts.modelUrl]      - Live2D model URL (.model.json / .model3.json)
+   * @param {string}      [opts.vrmUrl]        - VRM model URL (.vrm); triggers VRM renderer
+   * @param {object}      [opts.control]       - Initial control state { avatar: { face, body, emotion }, scene }
+   * @param {string}      [opts.stateUrl]      - Polling endpoint for live mediaState updates
+   * @param {number}      [opts.pollMs=500]    - Polling interval in ms
+   * @param {string}      [opts.vendorBase]    - Base path for pixi/live2d vendor scripts
    * @param {number}      [opts.width=360]
    * @param {number}      [opts.height=360]
-   * @param {string}      [opts.widgetBase]  - Override auto-detected script base path
+   * @param {string}      [opts.widgetBase]    - Override auto-detected script base path
    */
   function AvatarWidget(container, opts) {
     if (!container) throw new TypeError('[AvatarWidget] container element is required');
@@ -176,9 +179,10 @@
   AvatarWidget.prototype._buildMediaState = function () {
     var opts = this._opts;
     return {
-      avatarModel3Url: opts.modelUrl || '',
-      faceControl:     opts.faceControl || null,
-      render:          { rendererMode: opts.rendererMode || 'pixi' }
+      avatarModel3Url:  opts.modelUrl        || '',
+      avatarModelVrmUrl: opts.vrmUrl         || undefined,
+      control:          opts.control         || undefined,
+      render:           { rendererMode: opts.rendererMode || 'pixi' }
     };
   };
 

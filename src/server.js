@@ -65,6 +65,24 @@ async function route(req, res, runtime) {
     return json(res, 200, out);
   }
 
+  if (method === 'POST' && url === '/v1/control/set') {
+    const body = await parseBody(req);
+    const out = runtime.setControl(body);
+    return json(res, 200, { ok: true, control: out });
+  }
+
+  if (method === 'POST' && url === '/v1/control/avatar/set') {
+    const body = await parseBody(req);
+    const out = runtime.setControl({ avatar: body });
+    return json(res, 200, { ok: true, control: out });
+  }
+
+  if (method === 'POST' && url === '/v1/control/scene/set') {
+    const body = await parseBody(req);
+    const out = runtime.setControl({ scene: body });
+    return json(res, 200, { ok: true, control: out });
+  }
+
   return json(res, 404, { error: 'Not found' });
 }
 

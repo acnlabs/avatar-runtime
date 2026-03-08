@@ -1,1 +1,10 @@
-{"version":"Sample 1.0.0","model":"chitose/moc/chitose.moc","textures":["chitose/moc/chitose.2048/texture_00.png"],"motions":{"null":[{"file":"chitose/mtn/chitose_handwave.mtn"},{"file":"chitose/mtn/chitose_kime01.mtn"},{"file":"chitose/mtn/chitose_kime02.mtn"}],"idle":[{"file":"chitose/mtn/chitose_idle.mtn"}]},"expressions":[{"name":"f01.exp.json","file":"chitose/exp/f01.exp.json"},{"name":"f02.exp.json","file":"chitose/exp/f02.exp.json"},{"name":"f03.exp.json","file":"chitose/exp/f03.exp.json"},{"name":"f04.exp.json","file":"chitose/exp/f04.exp.json"},{"name":"f05.exp.json","file":"chitose/exp/f05.exp.json"},{"name":"f06.exp.json","file":"chitose/exp/f06.exp.json"},{"name":"f07.exp.json","file":"chitose/exp/f07.exp.json"}],"physics":"chitose/chitose.physics.json","pose":"chitose/chitose.pose.json"}
+{
+  "version": "Sample 1.0.0",
+  "_note": "Template placeholder for Cubism 2. Run scripts/ensure-default-live2d-sample.sh for local dev (see SKILL.md), or replace with a model you hold a license for.",
+  "model": "",
+  "textures": [],
+  "motions": {},
+  "expressions": [],
+  "physics": null,
+  "pose": null
+}

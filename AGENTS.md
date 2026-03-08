@@ -13,6 +13,10 @@ npm run dev                          # port 3721
 npm run dev:live2d-cubism-bridge     # terminal A — bridge on :3755
 AVATAR_PROVIDER=live2d LIVE2D_ENDPOINT=http://127.0.0.1:3755 npm start   # terminal B
 
+# Start with VRM local bridge (free models from https://hub.vroid.com)
+npm run dev:vrm-bridge               # terminal A — asset server on :3756
+AVATAR_PROVIDER=vrm npm start        # terminal B
+
 # Mock Live2D bridge (no Cubism SDK required)
 npm run mock:live2d-bridge
 ```
@@ -40,10 +44,12 @@ src/
     provider-heygen.js     ← HeyGen streaming
     provider-live2d.js     ← Local Live2D bridge adapter
     provider-kusapics.js   ← KusaPics anime API
+    provider-vrm.js        ← Local VRM 3D avatar (free models via VRoid Hub)
 web/
   renderer-registry.js     ← Browser renderer registry (window.OpenPersonaRendererRegistry)
   renderers/
     live2d-pixi-adapter.js ← Live2D Cubism 2 renderer
+    vrm-renderer.js        ← VRM 3D renderer (Three.js + @pixiv/three-vrm, lazy CDN load)
     vector-renderer.js     ← Geometric face fallback
   avatar-widget.js         ← Drop-in embeddable widget
   index.js                 ← Registers renderers on load
@@ -51,6 +57,7 @@ web/
 bridges/
   live2d-cubism-web-bridge.js  ← Full Cubism 4 web bridge (requires SDK)
   live2d-bridge-mock.js        ← Lightweight mock bridge
+  vrm-asset-server.js          ← Static file server for VRM models (:3756)
 scripts/                             ← published to npm
   ensure-default-live2d-sample.sh  ← Download chitose sample for local dev only
 dev-scripts/                        ← NOT published (CI/testing tools)
@@ -75,7 +82,10 @@ All routes documented in `docs/CONTRACT.md`. Key ones:
 | `POST` | `/v1/input/text` | Send text to active session |
 | `POST` | `/v1/input/audio` | Send audio to active session |
 | `POST` | `/v1/form/switch` | Switch avatar form (image / face / voice) |
-| `GET`  | `/v1/status` | Current session state + faceControl |
+| `GET`  | `/v1/status` | Current session state + `control` namespace |
+| `POST` | `/v1/control/set` | Write full control patch (avatar + scene) |
+| `POST` | `/v1/control/avatar/set` | Write avatar sub-domain patch only |
+| `POST` | `/v1/control/scene/set` | Write scene sub-domain patch only |
 | `GET`  | `/health` | Liveness check |
 
 ## Adding a provider
@@ -107,3 +117,5 @@ See `.env.example` for full list. Key vars:
 | `PORT` | `3721` | HTTP listen port |
 | `LIVE2D_ENDPOINT` | — | Live2D bridge URL (required when provider=live2d) |
 | `HEYGEN_API_KEY` | — | HeyGen API key |
+| `VRM_BRIDGE_ENDPOINT` | `http://127.0.0.1:3756` | VRM asset bridge URL (provider=vrm) |
+| `VRM_MODEL_URL` | — | Direct VRM model URL (overrides bridge auto-slot) |

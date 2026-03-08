@@ -71,6 +71,23 @@
     return n > 0 ? n - z : n + z;
   }
 
+  // ── Emotion → Live2D expression name candidates ──────────────────────────────
+  // Expression names are model-specific; we try each candidate in order and
+  // use the first one present in model.expressions (or just call the first).
+
+  var LIVE2D_EMOTION_CANDIDATES = {
+    happy:     ['happy', 'joy',      'f_happy',    'exp_happy'],
+    joy:       ['happy', 'joy',      'f_happy',    'exp_happy'],
+    sad:       ['sad',   'sorrow',   'f_sad',      'exp_sad'],
+    sorrow:    ['sad',   'sorrow',   'f_sad'],
+    angry:     ['angry', 'anger',    'f_angry',    'exp_angry'],
+    anger:     ['angry', 'anger',    'f_angry'],
+    surprised: ['surprised', 'surprise', 'f_surprised'],
+    surprise:  ['surprised', 'surprise', 'f_surprised'],
+    relaxed:   ['relaxed',   'calm',     'f_relaxed',  'f_calm'],
+    calm:      ['relaxed',   'calm',     'f_relaxed']
+  };
+
   // ── Cubism 2 standard parameter IDs ─────────────────────────────────────────
 
   var PARAM = {
@@ -99,10 +116,11 @@
       dpr:    Number(opts.viewport && opts.viewport.dpr)    || window.devicePixelRatio || 1
     };
 
-    var app       = null;
-    var model     = null;
-    var destroyed = false;
-    var lastFace  = null;
+    var app              = null;
+    var model            = null;
+    var destroyed        = false;
+    var lastFace         = null;
+    var lastEmotionLabel = null;
 
     // Smooth faceControl state (blinkL/R: 1=open, 0=closed — inverse of input)
     var faceCurrent = { yaw: 0, pitch: 0, roll: 0, gazeX: 0, gazeY: 0, blinkL: 1, blinkR: 1, jawOpen: 0, smile: 0 };
@@ -187,6 +205,37 @@
       faceTarget.blinkR = 1 - clamp(Number(eyes.blinkR) || 0, 0, 1);
       faceTarget.jawOpen = clamp(Number(mouth.jawOpen) || 0, 0, 1);
       faceTarget.smile   = clamp(Number(mouth.smile)   || 0, -1, 1);
+    }
+
+    function applyEmotionControl(emotion) {
+      if (!emotion || !model) return;
+      var label = String(emotion.label || 'neutral').toLowerCase();
+      if (label === lastEmotionLabel) return;
+      lastEmotionLabel = label;
+
+      if (label === 'neutral') {
+        try { model.expression(); } catch (_) {}
+        return;
+      }
+
+      var candidates = LIVE2D_EMOTION_CANDIDATES[label] || [label];
+
+      // Build a lowercase lookup of the model's declared expressions (if available).
+      var available = [];
+      try {
+        if (Array.isArray(model.expressions)) {
+          available = model.expressions.map(function (e) {
+            return typeof e === 'string' ? e.toLowerCase() : (e && e.name ? String(e.name).toLowerCase() : '');
+          });
+        }
+      } catch (_) {}
+
+      for (var i = 0; i < candidates.length; i++) {
+        var c = candidates[i];
+        if (available.length > 0 && available.indexOf(c.toLowerCase()) === -1) continue;
+        try { model.expression(c); } catch (_) {}
+        break;
+      }
     }
 
     function destroy() {
@@ -366,17 +415,19 @@
         });
 
         return {
-          kind:             'pixi-live2d',
-          setViewport:      setViewport,
-          setFrameMode:     setFrameMode,
-          setPose:          setPose,
-          applyFaceControl: applyFaceControl,
-          destroy:          destroy,
+          kind:                'pixi-live2d',
+          setViewport:         setViewport,
+          setFrameMode:        setFrameMode,
+          setPose:             setPose,
+          applyFaceControl:    applyFaceControl,
+          applyEmotionControl: applyEmotionControl,
+          destroy:             destroy,
           getState: function () {
             return {
-              ready:       !!model,
-              frameMode:   frameMode,
-              faceControl: lastFace
+              ready:        !!model,
+              frameMode:    frameMode,
+              faceControl:  lastFace,
+              emotionLabel: lastEmotionLabel
             };
           }
         };
@@ -408,7 +459,11 @@
           },
           update: function (mediaState) {
             if (!adapter) return;
-            if (mediaState && mediaState.faceControl) adapter.applyFaceControl(mediaState.faceControl);
+            var avatar  = mediaState && mediaState.control && mediaState.control.avatar;
+            var face    = avatar && avatar.face;
+            var emotion = avatar && avatar.emotion;
+            if (face)    adapter.applyFaceControl(face);
+            if (emotion) adapter.applyEmotionControl(emotion);
           },
           unmount: function () {
             if (adapter) { try { adapter.destroy(); } catch (_) {} adapter = null; }
