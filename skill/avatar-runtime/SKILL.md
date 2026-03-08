@@ -1,7 +1,7 @@
 ---
 name: avatar-runtime
 description: >
-  Embeds and controls a virtual avatar using @acnlabs/avatar-runtime.
+  Embeds and controls a virtual avatar using the avatar-runtime npm package.
   Provides Live2D rendering, VRM 3D, vector fallback, and control-driven expression/body/scene animation
   via a provider-agnostic session bridge.
   Use when the user asks for a virtual avatar, face-control animation, Live2D character,
