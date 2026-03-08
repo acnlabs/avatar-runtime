@@ -1,7 +1,7 @@
 {
   "name": "@acnlabs/avatar-runtime",
   "version": "0.2.0",
-  "description": "Provider-agnostic avatar runtime for OpenPersona (MVP)",
+  "description": "Provider-agnostic avatar runtime for OpenPersona — Live2D, VRM, HeyGen, and vector fallback with a unified control namespace",
   "author": "acnlabs",
   "repository": {
     "type": "git",
@@ -53,6 +53,8 @@
     "assets/live2d/slot/textures/.gitkeep",
     "assets/vrm/README.md",
     "assets/vrm/slot/.gitkeep",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
   ]
 }
