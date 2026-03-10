@@ -6,8 +6,8 @@ description: >
   via a provider-agnostic session bridge.
   Use when the user asks for a virtual avatar, face-control animation, Live2D character,
   avatar widget embedding, or when starting/stopping an avatar session.
-requires: node >= 18, npm
-source: https://github.com/acnlabs/avatar-runtime
+license: MIT
+compatibility: Requires node >= 18, npm, and curl. Runtime executes via npx — internet access required for first run.
 env-vars:
   optional:
     - AVATAR_RUNTIME_URL
@@ -20,6 +20,10 @@ env-vars:
     - VRM_BRIDGE_ENDPOINT
     - KUSAPICS_API_KEY
     - KUSAPICS_BASE_URL
+metadata:
+  author: openpersona
+  version: "0.2.0"
+  source: https://github.com/acnlabs/avatar-runtime
 allowed-tools: Bash(node:*) Bash(curl:*) Bash(npm:*) Bash(bash:*)
 ---
 
