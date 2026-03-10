@@ -6,10 +6,34 @@ description: >
   via a provider-agnostic session bridge.
   Use when the user asks for a virtual avatar, face-control animation, Live2D character,
   avatar widget embedding, or when starting/stopping an avatar session.
-allowed-tools: Bash(node:*) Bash(curl:*) Bash(npm:*)
+requires: node >= 18, npm
+source: https://github.com/acnlabs/avatar-runtime
+env-vars:
+  optional:
+    - AVATAR_RUNTIME_URL
+    - AVATAR_PROVIDER
+    - HEYGEN_API_KEY
+    - HEYGEN_AVATAR_ID
+    - HEYGEN_STRICT
+    - LIVE2D_ENDPOINT
+    - LIVE2D_STRICT
+    - VRM_BRIDGE_ENDPOINT
+    - KUSAPICS_API_KEY
+    - KUSAPICS_BASE_URL
+allowed-tools: Bash(node:*) Bash(curl:*) Bash(npm:*) Bash(bash:*)
 ---
 
 # Avatar Runtime Skill
+
+## Security & Trust
+
+This skill contains **no bundled server code** — it instructs the agent to download and execute the `avatar-runtime` npm package via `npx` at runtime. Before running:
+
+1. **Verify the source** — Review the [avatar-runtime repository](https://github.com/acnlabs/avatar-runtime) and confirm you are installing the official package from the npm registry.
+2. **Review setup scripts before running** — `scripts/ensure-default-vrm-sample.sh` and `scripts/ensure-default-live2d-sample.sh` download third-party assets at runtime. Inspect their contents before executing them in your environment.
+3. **Sandbox first** — Run `npx avatar-runtime` in an isolated environment and monitor outbound network connections before deploying to production.
+4. **Live2D licensing** — The sample Live2D model (`live2d-widget-model-chitose`) is subject to the [Live2D Free Material License](https://www.live2d.com/en/sdk/license/free-material/), which prohibits redistribution and commercial use. Use it for local development only.
+5. **API key handling** — `HEYGEN_API_KEY` and `KUSAPICS_API_KEY` are passed as environment variables directly to `npx avatar-runtime`. Ensure these are not logged or exposed in shared environments.
 
 ## Runtime endpoint
 
