@@ -7,7 +7,7 @@ Versioning follows [Semantic Versioning](https://semver.org/).
 
 ---
 
-## [0.2.0] — 2026-03-08
+## [0.2.1] — 2026-03-08
 
 ### Breaking changes
 
@@ -79,11 +79,11 @@ Initial release — MVP scaffold.
 - Node.js HTTP server (`src/server.js`) — session lifecycle (`/v1/session/start`, `/v1/session/stop`), text input (`/v1/input/text`), status (`/v1/status`).
 - Provider abstraction (`src/providers/index.js`) — selects provider from `AVATAR_PROVIDER` env var.
 - `mock` provider — development default; returns deterministic face control and session state; no API key required.
-- `heygen` provider — initial HeyGen API integration (placeholder streaming stubs, replaced in 0.2.0).
+- `heygen` provider — initial HeyGen API integration (placeholder streaming stubs, replaced in 0.2.1).
 - `kusapics` provider — anime-oriented image provider skeleton.
 - CLI entry (`bin/avatar-runtime.js`) — `npx avatar-runtime [--port N]`.
 - `skill/avatar/SKILL.md` — initial agent skill pack.
 - `.env.example` — environment variable reference.
 
-[0.2.0]: https://github.com/acnlabs/avatar-runtime/compare/v0.1.0...v0.2.0
+[0.2.1]: https://github.com/acnlabs/avatar-runtime/compare/v0.1.0...v0.2.1
 [0.1.0]: https://github.com/acnlabs/avatar-runtime/releases/tag/v0.1.0

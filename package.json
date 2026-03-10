@@ -1,6 +1,6 @@
 {
   "name": "avatar-runtime",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Provider-agnostic avatar runtime for OpenPersona — Live2D, VRM, HeyGen, and vector fallback with a unified control namespace",
   "author": "acnlabs",
   "repository": {

@@ -22,7 +22,7 @@ env-vars:
     - KUSAPICS_BASE_URL
 metadata:
   author: openpersona
-  version: "0.2.0"
+  version: "0.2.1"
   source: https://github.com/acnlabs/avatar-runtime
 allowed-tools: Bash(node:*) Bash(curl:*) Bash(npm:*) Bash(bash:*)
 ---
